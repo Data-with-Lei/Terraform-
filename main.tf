@@ -17,7 +17,7 @@ provider "aws" {
 
 #create VPC: CIDR 10.0.0.0/16
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
   assign_generated_ipv6_cidr_block = true
   enable_dns_hostnames = true
   enable_dns_support = true
@@ -49,6 +49,15 @@ resource "aws_subnet" "private" {
     }
     availability_zone = data.aws_availability_zones.availability_zone.names[count.index]
 }
+
+#IGW
+resource "aws_internet_gateway" "main_igw" {
+    vpc_id = aws_vpc.main.id
+    tags = {
+        Name = "${var.default_tags.env}-igw"
+    }
+}
+
 
 #Public RT
 
