@@ -74,12 +74,31 @@ resource "aws_route" "public_route" {
   gateway_id = aws_internet_gateway.main_igw.id
 }
 
-resource "aws_route" "public_routev6" {
+resource "aws_route_table_association" "public_routev6" {
   count = var.Public_subnet_count
   subnet_id = element(aws_subnet.public.*.id, count.index)
   route_table_id = aws_route_table.public_rt.id
 }
 #Private RT
+
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.main.id
+  tags = {
+      "Name" = "${var.default_tags.env}-Private-RT"
+  }
+}
+
+resource "aws_route" "private_route" {
+  route_table_id = aws_route_table.private_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main_nat.id 
+  }
+
+resource "aws_route_table_association" "public_rt_association" {
+  count = var.Private_subnet_count
+  subnet_id = element(aws_subnet.private.*.id, count.index)
+  route_table_id = aws_route_table.private_rt.id
+}
 
 # EIP
 resource "aws_eip" "nat_EIP" {
@@ -89,8 +108,8 @@ resource "aws_eip" "nat_EIP" {
 #NAT
 resource "aws_nat_gateway" "main_nat" {
   allocation_id = aws_eip.nat_EIP.id
-  subnet_id = aws_subnet.public[0].id
+  subnet_id = aws_subnet.public.0.id
   tags = {
-    Name = "${var.default_tags.env}-nat"
+    "Name" = "${var.default_tags.env}-ngw"
   }
 }
