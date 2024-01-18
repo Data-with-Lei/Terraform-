@@ -5,6 +5,11 @@ terraform {
       version = "5.32.1"
     }
   }
+  backend "s3" {
+    bucket = "smori-s3bucket"
+    key = "terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 provider "aws" {
